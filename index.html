@@ -5,37 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aerivue — AI Image Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Space+Mono:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@300;400;600&family=Noto+Serif+JP:wght@200;300;400&family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #080a10;
-  --bg2: #0d1018;
-  --surface: rgba(255,255,255,0.03);
-  --surface2: rgba(255,255,255,0.06);
-  --border: rgba(255,255,255,0.06);
-  --border-hi: rgba(180,160,255,0.25);
-  --accent: #b4a0ff;
-  --accent2: #7ecfff;
-  --accent3: #ffb4d4;
-  --text: #eeedf5;
-  --text2: #8b8fa8;
-  --text3: #3d4057;
+  --bg: #04050d;
+  --bg2: #070912;
+  --glass: rgba(8,10,28,0.55);
+  --glass2: rgba(16,18,45,0.65);
+  --glass3: rgba(255,255,255,0.035);
+  --border: rgba(160,140,255,0.10);
+  --border-hi: rgba(180,160,255,0.35);
+  --border-glow: rgba(160,200,255,0.25);
+  --accent: #c8b4ff;
+  --accent2: #88d4ff;
+  --accent3: #ffb4d8;
+  --accent4: #b4ffe4;
+  --text: #f0eeff;
+  --text2: #9290b0;
+  --text3: #3a3858;
+  --text4: #5a5880;
   --mono: 'Space Mono', monospace;
-  --serif: 'Cormorant Garamond', serif;
-  --jp: 'Zen Kaku Gothic New', sans-serif;
+  --title: 'Cinzel', serif;
+  --jp: 'Noto Serif JP', serif;
+  --ui: 'Rajdhani', sans-serif;
+  --glow-purple: rgba(160,120,255,0.18);
+  --glow-blue: rgba(100,180,255,0.14);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--jp);
+  font-family: var(--ui);
   overflow-x: hidden;
   min-height: 100vh;
+  cursor: crosshair;
 }
 
-/* ── BACKGROUND ANIME SCENE ── */
+/* ═══════════════════════════════
+   CUSTOM CURSOR
+═══════════════════════════════ */
+.cursor {
+  position: fixed;
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.1s;
+  mix-blend-mode: screen;
+}
+.cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: 1px solid rgba(180,160,255,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transition: transform 0.15s, width 0.2s, height 0.2s, border-color 0.2s;
+}
+
+/* ═══════════════════════════════
+   BACKGROUND — DEEP NIGHT SCENE
+═══════════════════════════════ */
 .bg-scene {
   position: fixed;
   inset: 0;
@@ -43,142 +77,239 @@ body {
   overflow: hidden;
 }
 
-/* Large moon */
+/* Aurora / nebula glow */
+.aurora {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(80,60,180,0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(40,100,200,0.10) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 30% at 50% 30%, rgba(120,80,220,0.07) 0%, transparent 70%);
+  animation: aurora-shift 15s ease-in-out infinite alternate;
+}
+@keyframes aurora-shift {
+  0% { opacity: 0.7; transform: scale(1) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1.05) rotate(1deg); }
+}
+
+/* Moon — large, detailed */
+.moon-wrap {
+  position: absolute;
+  top: 5vh;
+  right: 10vw;
+  animation: moon-float 12s ease-in-out infinite;
+}
+@keyframes moon-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
 .moon {
-  position: absolute;
-  top: 8vh;
-  right: 12vw;
-  width: 220px;
-  height: 220px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fef9e8 0%, #f0e4b8 40%, #c8b87a 100%);
-  box-shadow: 0 0 60px 20px rgba(240,228,184,0.08), 0 0 120px 60px rgba(240,228,184,0.04);
-  opacity: 0.55;
+  background: radial-gradient(circle at 38% 32%, #fffef2 0%, #f5e8b8 35%, #d4c070 75%, #a89040 100%);
+  box-shadow:
+    0 0 40px 15px rgba(240,220,140,0.08),
+    0 0 100px 50px rgba(220,200,100,0.04),
+    inset -20px -15px 40px rgba(60,40,0,0.35);
+  opacity: 0.65;
+  position: relative;
 }
-.moon::after {
+.moon::before {
   content: '';
   position: absolute;
-  inset: 0;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  background: radial-gradient(circle at 60% 40%, transparent 50%, rgba(0,0,0,0.15) 100%);
+  background: rgba(0,0,0,0.08);
+  top: 28%; left: 20%;
+  box-shadow: 30px 10px 0 rgba(0,0,0,0.06), -5px 40px 0 rgba(0,0,0,0.05), 50px 35px 0 rgba(0,0,0,0.04);
+}
+.moon-halo {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  border: 1px solid rgba(240,220,140,0.08);
+  animation: halo-pulse 4s ease-in-out infinite;
+}
+.moon-halo:nth-child(2) { inset: -55px; border-color: rgba(240,220,140,0.04); animation-delay: 1s; }
+@keyframes halo-pulse {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
 }
 
-/* Distant mountains */
-.mountains {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 55vh;
-}
-.mt {
-  position: absolute;
-  bottom: 0;
-}
-.mt1 {
-  left: -5%;
-  width: 45%;
-  height: 42vh;
-  background: linear-gradient(160deg, #0c1428 0%, #0a1020 100%);
-  clip-path: polygon(20% 100%, 50% 5%, 80% 100%);
-}
-.mt2 {
-  left: 15%;
-  width: 40%;
-  height: 50vh;
-  background: linear-gradient(160deg, #0f1830 0%, #0c1422 100%);
-  clip-path: polygon(15% 100%, 48% 2%, 85% 100%);
-}
-.mt3 {
-  right: -5%;
-  width: 50%;
-  height: 38vh;
-  background: linear-gradient(160deg, #0a1020 0%, #080e1a 100%);
-  clip-path: polygon(10% 100%, 55% 8%, 90% 100%);
-}
-.mt4 {
-  right: 10%;
-  width: 38%;
-  height: 45vh;
-  background: linear-gradient(160deg, #0d1628 0%, #0b1220 100%);
-  clip-path: polygon(12% 100%, 50% 3%, 88% 100%);
-}
-
-/* Snow caps */
-.mt1::after, .mt2::after, .mt3::after, .mt4::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 28%;
-  height: 22%;
-  background: rgba(255,255,255,0.04);
-  clip-path: polygon(20% 100%, 50% 0%, 80% 100%);
-}
-
-/* Stars */
-.stars {
-  position: absolute;
-  inset: 0;
-}
+/* Stars — multiple layers */
+.stars { position: absolute; inset: 0; }
 .star {
   position: absolute;
   background: white;
   border-radius: 50%;
-  animation: twinkle var(--d, 3s) ease-in-out infinite var(--del, 0s);
+  animation: twinkle var(--d,3s) ease-in-out infinite var(--del,0s);
+}
+.star.big {
+  background: radial-gradient(circle, #fff 0%, rgba(180,200,255,0.8) 60%, transparent 100%);
+  box-shadow: 0 0 4px 1px rgba(180,200,255,0.4);
 }
 @keyframes twinkle {
-  0%, 100% { opacity: var(--op, 0.4); transform: scale(1); }
-  50% { opacity: 0.1; transform: scale(0.6); }
+  0%, 100% { opacity: var(--op,0.5); transform: scale(1); }
+  50% { opacity: 0.08; transform: scale(0.5); }
+}
+
+/* Shooting stars */
+.shoot {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), rgba(180,160,255,0.6), transparent);
+  animation: shoot linear infinite;
+  opacity: 0;
+}
+@keyframes shoot {
+  0% { opacity: 0; transform: translateX(0) translateY(0) rotate(-30deg); width: 0; }
+  5% { opacity: 1; }
+  30% { opacity: 0.6; width: 200px; }
+  60% { opacity: 0; transform: translateX(400px) translateY(200px) rotate(-30deg); width: 200px; }
+  100% { opacity: 0; }
+}
+
+/* Distant mountains — layered parallax */
+.mountains { position: absolute; bottom: 0; left: 0; right: 0; height: 60vh; }
+
+/* Far mountains */
+.mt-far { position: absolute; bottom: 0; left: 0; right: 0; }
+.mt-far::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: -5%;
+  width: 55%;
+  height: 35vh;
+  background: linear-gradient(165deg, #0b0f22 0%, #080c1c 100%);
+  clip-path: polygon(0% 100%, 12% 55%, 28% 25%, 45% 50%, 62% 100%);
+  opacity: 0.7;
+}
+.mt-far::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: -5%;
+  width: 55%;
+  height: 30vh;
+  background: linear-gradient(165deg, #090d1e 0%, #070a18 100%);
+  clip-path: polygon(30% 100%, 50% 45%, 68% 20%, 82% 45%, 100% 100%);
+  opacity: 0.7;
+}
+
+/* Mid mountains */
+.mt-mid1 {
+  position: absolute;
+  bottom: 0; left: 5%;
+  width: 42%;
+  height: 45vh;
+  background: linear-gradient(160deg, #0d1230 0%, #0a0e24 100%);
+  clip-path: polygon(5% 100%, 35% 8%, 65% 100%);
+}
+.mt-mid2 {
+  position: absolute;
+  bottom: 0; right: 2%;
+  width: 48%;
+  height: 50vh;
+  background: linear-gradient(155deg, #0e1432 0%, #0b1026 100%);
+  clip-path: polygon(10% 100%, 42% 4%, 78% 100%);
+}
+.mt-mid3 {
+  position: absolute;
+  bottom: 0;
+  left: 28%;
+  width: 45%;
+  height: 55vh;
+  background: linear-gradient(158deg, #111840 0%, #0d122e 100%);
+  clip-path: polygon(8% 100%, 46% 2%, 85% 100%);
+}
+
+/* Snow caps */
+.mt-mid1::after, .mt-mid2::after, .mt-mid3::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 26%;
+  height: 20%;
+  background: linear-gradient(to bottom, rgba(220,230,255,0.08), transparent);
+  clip-path: polygon(25% 100%, 50% 0%, 75% 100%);
+}
+
+/* Ground mist layers */
+.mist-layer {
+  position: absolute;
+  left: 0; right: 0;
+  background: linear-gradient(to top, transparent, rgba(100,120,200,0.035) 50%, transparent);
+  animation: drift-mist ease-in-out infinite alternate;
+}
+.mist-layer:nth-child(1) { bottom: 28%; height: 80px; animation-duration: 9s; }
+.mist-layer:nth-child(2) { bottom: 20%; height: 60px; animation-duration: 13s; animation-delay: -4s; opacity: 0.7; }
+.mist-layer:nth-child(3) { bottom: 35%; height: 40px; animation-duration: 7s; animation-delay: -2s; opacity: 0.5; }
+@keyframes drift-mist {
+  0% { transform: translateX(-20px) scaleY(1); }
+  100% { transform: translateX(20px) scaleY(1.4); }
 }
 
 /* Sakura petals */
 .petal {
   position: absolute;
-  width: 6px;
-  height: 6px;
   border-radius: 50% 0 50% 0;
-  background: rgba(255,180,212,0.35);
-  animation: fall linear infinite;
+  background: linear-gradient(135deg, rgba(255,180,212,0.6), rgba(255,210,230,0.3));
+  animation: fall-petal linear infinite;
   top: -20px;
+  filter: blur(0.3px);
 }
-@keyframes fall {
-  0% { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0.8; }
-  50% { transform: translateY(50vh) rotate(180deg) translateX(40px); opacity: 0.5; }
-  100% { transform: translateY(105vh) rotate(360deg) translateX(-20px); opacity: 0; }
+@keyframes fall-petal {
+  0% { transform: translateY(0) rotate(0deg) translateX(0) scale(1); opacity: 0.9; }
+  40% { transform: translateY(45vh) rotate(160deg) translateX(50px) scale(0.9); opacity: 0.6; }
+  70% { transform: translateY(75vh) rotate(280deg) translateX(-30px) scale(0.8); opacity: 0.3; }
+  100% { transform: translateY(108vh) rotate(400deg) translateX(20px) scale(0.7); opacity: 0; }
 }
 
-/* Mist/fog layer */
-.mist {
+/* Fireflies */
+.firefly {
   position: absolute;
-  bottom: 25%;
-  left: 0;
-  right: 0;
-  height: 120px;
-  background: linear-gradient(to top, transparent, rgba(140,160,220,0.04) 40%, transparent);
-  animation: drift-mist 8s ease-in-out infinite;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  background: rgba(180,255,200,0.8);
+  box-shadow: 0 0 6px 2px rgba(150,255,180,0.5);
+  animation: fly ease-in-out infinite, flicker 2s ease-in-out infinite;
 }
-@keyframes drift-mist {
-  0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.6; }
-  50% { transform: translateX(30px) scaleY(1.3); opacity: 1; }
+@keyframes fly {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(30px, -40px); }
+  50% { transform: translate(-20px, -70px); }
+  75% { transform: translate(40px, -30px); }
+}
+@keyframes flicker {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.1; }
 }
 
-/* Overlay gradient */
+/* Overlay */
 .bg-overlay {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(180,160,255,0.06) 0%, transparent 60%),
-    linear-gradient(to bottom, rgba(8,10,16,0.2) 0%, rgba(8,10,16,0.7) 70%, rgba(8,10,16,0.96) 100%);
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(120,100,220,0.08) 0%, transparent 70%),
+    linear-gradient(to bottom,
+      rgba(4,5,13,0.1) 0%,
+      rgba(4,5,13,0.5) 50%,
+      rgba(4,5,13,0.94) 85%,
+      rgba(4,5,13,0.99) 100%
+    );
 }
 
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar { width: 3px; }
+/* ═══════════════════════════════
+   SCROLLBAR
+═══════════════════════════════ */
+::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--text3); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, var(--accent), var(--accent2)); border-radius: 2px; }
 
-/* ── NAV ── */
+/* ═══════════════════════════════
+   NAV
+═══════════════════════════════ */
 nav {
   position: sticky;
   top: 0;
@@ -186,18 +317,41 @@ nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 48px;
-  background: rgba(8,10,16,0.6);
-  backdrop-filter: blur(24px) saturate(1.4);
+  padding: 16px 52px;
+  background: rgba(4,5,13,0.5);
+  backdrop-filter: blur(30px) saturate(1.6);
+  -webkit-backdrop-filter: blur(30px) saturate(1.6);
   border-bottom: 1px solid var(--border);
+}
+nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  opacity: 0.3;
 }
 
 .nav-logo {
-  font-family: var(--serif);
-  font-size: 1.4rem;
-  font-weight: 300;
-  letter-spacing: 0.12em;
+  font-family: var(--title);
+  font-size: 1.3rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-gem {
+  width: 20px; height: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  clip-path: polygon(50% 0%, 100% 30%, 85% 100%, 15% 100%, 0% 30%);
+  animation: gem-spin 8s linear infinite;
+  opacity: 0.9;
+}
+@keyframes gem-spin {
+  0%, 100% { transform: rotateY(0deg); filter: hue-rotate(0deg); }
+  50% { transform: rotateY(180deg); filter: hue-rotate(40deg); }
 }
 .nav-logo span { color: var(--accent); }
 
@@ -205,194 +359,258 @@ nav {
 
 .nav-link {
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  padding: 6px 14px;
-  border-radius: 3px;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 7px 16px;
+  border-radius: 2px;
   border: 1px solid var(--border);
   color: var(--text2);
   background: transparent;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
 }
-.nav-link:hover { border-color: var(--border-hi); color: var(--accent); background: rgba(180,160,255,0.04); }
-.nav-link.hi { border-color: rgba(180,160,255,0.2); color: var(--accent); }
+.nav-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.nav-link:hover { border-color: var(--border-hi); color: var(--accent); }
+.nav-link.hi {
+  border-color: rgba(180,160,255,0.25);
+  color: var(--accent);
+  background: rgba(160,140,255,0.06);
+}
+.nav-link.hi:hover { background: rgba(160,140,255,0.12); }
 
-/* ── HERO ── */
+/* ═══════════════════════════════
+   HERO
+═══════════════════════════════ */
 .hero {
   position: relative;
   z-index: 2;
   text-align: center;
-  padding: 110px 24px 50px;
+  padding: 100px 24px 44px;
 }
 
+.hero-kana {
+  font-family: var(--jp);
+  font-size: 0.75rem;
+  letter-spacing: 0.5em;
+  color: var(--accent2);
+  opacity: 0.6;
+  margin-bottom: 8px;
+  animation: rise 1s ease both 0.05s;
+}
 .hero-tag {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.2em;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--accent2);
-  margin-bottom: 24px;
-  opacity: 0;
-  animation: rise 0.9s cubic-bezier(.22,1,.36,1) 0.1s forwards;
+  margin-bottom: 22px;
+  animation: rise 1s ease both 0.1s;
 }
+.hero-tag::before, .hero-tag::after {
+  content: '';
+  width: 30px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent2));
+}
+.hero-tag::after { background: linear-gradient(270deg, transparent, var(--accent2)); }
 
 .hero h1 {
-  font-family: var(--serif);
-  font-size: clamp(3rem, 8vw, 7rem);
-  font-weight: 300;
-  line-height: 1.0;
-  letter-spacing: -0.01em;
-  margin-bottom: 18px;
-  opacity: 0;
-  animation: rise 0.9s cubic-bezier(.22,1,.36,1) 0.2s forwards;
+  font-family: var(--title);
+  font-size: clamp(2.8rem, 7vw, 6.5rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+  animation: rise 1s ease both 0.2s;
 }
 .hero h1 em {
   font-style: italic;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 60%, var(--accent3) 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(160,140,255,0.4));
 }
 
 .hero-sub {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text2);
-  font-weight: 300;
-  letter-spacing: 0.05em;
-  margin-bottom: 52px;
-  opacity: 0;
-  animation: rise 0.9s cubic-bezier(.22,1,.36,1) 0.3s forwards;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  margin-bottom: 50px;
+  animation: rise 1s ease both 0.3s;
 }
 
 @keyframes rise {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ── MAIN CARD ── */
+/* ═══════════════════════════════
+   MAIN GENERATOR CARD
+═══════════════════════════════ */
 .gen-wrap {
   position: relative;
   z-index: 2;
-  max-width: 780px;
+  max-width: 820px;
   margin: 0 auto;
   padding: 0 20px 80px;
-  opacity: 0;
-  animation: rise 0.9s cubic-bezier(.22,1,.36,1) 0.4s forwards;
+  animation: rise 1s ease both 0.4s;
 }
 
 .gen-card {
-  background: rgba(12,14,22,0.85);
+  background: var(--glass);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(40px) saturate(1.8);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
   position: relative;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 40px 80px rgba(0,0,5,0.6),
+    0 0 80px rgba(120,100,255,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
-/* top accent line */
-.gen-card::before {
-  content: '';
+/* Animated top border */
+.card-shimmer {
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0; left: -100%; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--accent) 40%, var(--accent2) 70%, transparent 100%);
-  opacity: 0.6;
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 30%, var(--accent2) 60%, var(--accent3) 80%, transparent 100%);
+  animation: shimmer-slide 4s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes shimmer-slide {
+  0% { left: -100%; opacity: 0.4; }
+  50% { left: 0; opacity: 1; }
+  100% { left: 100%; opacity: 0.4; }
 }
 
-/* ── INPUT SECTION ── */
+/* Corner ornaments */
+.corner-tl, .corner-br {
+  position: absolute;
+  width: 20px; height: 20px;
+  pointer-events: none;
+  z-index: 2;
+}
+.corner-tl { top: 0; left: 0; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); opacity: 0.5; }
+.corner-br { bottom: 0; right: 0; border-bottom: 1px solid var(--accent2); border-right: 1px solid var(--accent2); opacity: 0.5; }
+
+/* ── PROMPT INPUT SECTION ── */
 .input-section {
-  padding: 28px 28px 22px;
+  padding: 26px 28px 20px;
   border-bottom: 1px solid var(--border);
+  position: relative;
 }
 
 .field-label {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--text3);
+  color: var(--text4);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-.field-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.prompt-row {
-  display: flex;
   gap: 10px;
-  align-items: flex-start;
 }
+.field-label .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent2); opacity: 0.7; }
+.field-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.prompt-row { display: flex; gap: 10px; align-items: flex-start; }
 
 .prompt-input {
   flex: 1;
-  background: rgba(255,255,255,0.025);
+  background: rgba(255,255,255,0.02);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 14px 16px;
   font-family: var(--jp);
   font-weight: 300;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text);
   resize: none;
-  min-height: 54px;
+  min-height: 56px;
   max-height: 120px;
-  transition: border-color 0.2s, background 0.2s;
-  line-height: 1.6;
+  transition: all 0.3s;
+  line-height: 1.7;
+  backdrop-filter: blur(10px);
 }
 .prompt-input::placeholder { color: var(--text3); font-weight: 300; }
 .prompt-input:focus {
   outline: none;
-  border-color: rgba(180,160,255,0.35);
-  background: rgba(180,160,255,0.03);
+  border-color: rgba(180,160,255,0.4);
+  background: rgba(140,120,255,0.03);
+  box-shadow: 0 0 0 3px rgba(140,120,255,0.06), 0 0 20px rgba(140,120,255,0.08);
 }
 
 .gen-btn {
   flex-shrink: 0;
-  padding: 0 22px;
-  height: 54px;
-  background: rgba(180,160,255,0.08);
-  border: 1px solid rgba(180,160,255,0.25);
-  border-radius: 3px;
+  padding: 0 24px;
+  height: 56px;
+  background: linear-gradient(135deg, rgba(160,130,255,0.12) 0%, rgba(100,180,255,0.08) 100%);
+  border: 1px solid rgba(160,140,255,0.3);
+  border-radius: 4px;
   color: var(--accent);
   font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   white-space: nowrap;
-  min-width: 110px;
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
 }
+.gen-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(160,130,255,0.2), rgba(100,180,255,0.15));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.gen-btn:hover::before { opacity: 1; }
 .gen-btn:hover {
-  background: rgba(180,160,255,0.14);
-  border-color: rgba(180,160,255,0.45);
-  box-shadow: 0 0 20px rgba(180,160,255,0.12);
+  border-color: rgba(160,140,255,0.55);
+  box-shadow: 0 0 25px rgba(140,120,255,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+  transform: translateY(-1px);
 }
-.gen-btn:active { transform: scale(0.98); }
-.gen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.gen-btn:active { transform: scale(0.97) translateY(0); }
+.gen-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; justify-content: center; }
 
-/* ── API KEY ── */
+/* ── API KEY SECTION ── */
 .apikey-section {
-  padding: 14px 28px;
+  padding: 12px 28px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  background: rgba(0,0,0,0.15);
 }
+.key-icon { color: var(--accent3); font-size: 0.8rem; opacity: 0.7; }
 .key-label {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  color: var(--text3);
-  letter-spacing: 0.1em;
+  font-size: 0.58rem;
+  color: var(--text4);
+  letter-spacing: 0.12em;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 .apikey-input {
   flex: 1;
@@ -402,6 +620,7 @@ nav {
   font-size: 0.72rem;
   color: var(--text2);
   outline: none;
+  letter-spacing: 0.05em;
 }
 .apikey-input::placeholder { color: var(--text3); }
 .get-key-link {
@@ -410,44 +629,56 @@ nav {
   letter-spacing: 0.08em;
   color: var(--accent);
   text-decoration: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  opacity: 0.65;
+  transition: all 0.2s;
   white-space: nowrap;
+  border: 1px solid rgba(180,160,255,0.15);
+  padding: 4px 10px;
+  border-radius: 2px;
 }
-.get-key-link:hover { opacity: 1; }
+.get-key-link:hover { opacity: 1; border-color: rgba(180,160,255,0.35); background: rgba(180,160,255,0.06); }
 
 /* ── EXAMPLES ── */
 .examples-section {
-  padding: 14px 28px;
+  padding: 12px 28px;
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.1);
 }
 .ex-label {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
   color: var(--text3);
   text-transform: uppercase;
 }
 .ex-chip {
-  font-family: var(--jp);
+  font-family: var(--ui);
   font-size: 0.72rem;
-  font-weight: 300;
-  padding: 5px 12px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  padding: 5px 13px;
   border: 1px solid var(--border);
-  border-radius: 2px;
+  border-radius: 20px;
   color: var(--text2);
-  background: transparent;
+  background: rgba(255,255,255,0.02);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
 }
-.ex-chip:hover { border-color: var(--border-hi); color: var(--text); }
+.ex-chip:hover {
+  border-color: var(--border-glow);
+  color: var(--accent2);
+  background: rgba(100,180,255,0.05);
+  transform: translateY(-1px);
+}
 
-/* ── OUTPUT ── */
+/* ── OUTPUT AREA ── */
 .output-area {
-  min-height: 360px;
+  min-height: 380px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -455,246 +686,311 @@ nav {
   overflow: hidden;
 }
 
-/* Empty */
-.empty-state { text-align: center; padding: 52px 24px; }
-.empty-cross {
-  width: 48px;
-  height: 48px;
-  margin: 0 auto 20px;
-  position: relative;
-  opacity: 0.12;
-}
-.empty-cross::before, .empty-cross::after {
+/* Grid pattern background */
+.output-area::before {
   content: '';
   position: absolute;
-  background: var(--text);
-  border-radius: 1px;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(180,160,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,160,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
 }
-.empty-cross::before { width: 1px; height: 100%; top: 0; left: 50%; }
-.empty-cross::after { width: 100%; height: 1px; top: 50%; left: 0; }
-.empty-text { font-size: 0.8rem; color: var(--text3); font-weight: 300; line-height: 1.7; }
+
+/* Empty */
+.empty-state { text-align: center; padding: 60px 24px; position: relative; z-index: 1; }
+.empty-icon {
+  width: 64px; height: 64px;
+  margin: 0 auto 24px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.02);
+  animation: idle-pulse 3s ease-in-out infinite;
+}
+.empty-icon svg { opacity: 0.15; }
+@keyframes idle-pulse {
+  0%, 100% { border-color: rgba(160,140,255,0.10); box-shadow: none; }
+  50% { border-color: rgba(160,140,255,0.25); box-shadow: 0 0 20px rgba(160,140,255,0.06); }
+}
+.empty-text {
+  font-size: 0.82rem;
+  color: var(--text3);
+  font-weight: 300;
+  line-height: 1.8;
+  letter-spacing: 0.05em;
+}
+.empty-text strong { color: var(--text4); font-weight: 400; display: block; margin-bottom: 6px; font-size: 0.9rem; }
 
 /* Loading */
-.loading-state { text-align: center; padding: 52px 24px; }
-.spinner-wrap {
-  width: 48px; height: 48px;
-  margin: 0 auto 22px;
-  position: relative;
-}
-.spinner-ring {
+.loading-state { text-align: center; padding: 60px 24px; position: relative; z-index: 1; }
+.spinner-wrap { width: 56px; height: 56px; margin: 0 auto 24px; position: relative; }
+.ring {
   position: absolute;
-  inset: 0;
   border-radius: 50%;
   border: 1px solid transparent;
 }
-.spinner-ring.outer {
-  border-top-color: var(--accent);
-  animation: spin 1.4s linear infinite;
-}
-.spinner-ring.inner {
-  inset: 10px;
-  border-top-color: var(--accent2);
-  animation: spin 1s linear infinite reverse;
+.ring-1 { inset: 0; border-top-color: var(--accent); border-right-color: rgba(180,160,255,0.3); animation: spin 1.8s linear infinite; }
+.ring-2 { inset: 10px; border-top-color: var(--accent2); animation: spin 1.2s linear infinite reverse; }
+.ring-3 { inset: 20px; border-top-color: var(--accent3); border-right-color: rgba(255,180,212,0.2); animation: spin 2.4s linear infinite; }
+.ring-dot {
+  position: absolute;
+  inset: 24px;
+  background: rgba(180,160,255,0.2);
+  border-radius: 50%;
+  animation: dot-pulse 1.5s ease-in-out infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes dot-pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
 .loading-title {
-  font-family: var(--serif);
-  font-size: 1.1rem;
+  font-family: var(--title);
+  font-size: 1.05rem;
   font-weight: 300;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
 }
-.loading-sub { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); letter-spacing: 0.05em; }
-.progress { width: 160px; height: 1px; background: var(--border); margin: 18px auto 0; overflow: hidden; border-radius: 1px; }
+.loading-sub { font-family: var(--mono); font-size: 0.62rem; color: var(--text3); letter-spacing: 0.06em; }
+.progress-wrap { width: 180px; margin: 20px auto 0; }
+.progress { height: 1px; background: var(--border); overflow: hidden; border-radius: 1px; }
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent2));
-  animation: sweep 2.5s ease-in-out infinite;
-  width: 50%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+  animation: sweep 2.8s ease-in-out infinite;
+  width: 60%;
 }
-@keyframes sweep { 0% { transform: translateX(-120%); } 100% { transform: translateX(320%); } }
+@keyframes sweep { 0% { transform: translateX(-160%); } 100% { transform: translateX(320%); } }
+.progress-label { font-family: var(--mono); font-size: 0.55rem; color: var(--text3); margin-top: 8px; letter-spacing: 0.08em; }
 
 /* Result */
-.result-state { width: 100%; padding: 22px; }
+.result-state { width: 100%; padding: 20px; position: relative; z-index: 1; }
 .result-img-wrap {
-  border-radius: 3px;
+  border-radius: 4px;
   overflow: hidden;
   margin-bottom: 12px;
   border: 1px solid var(--border);
   background: var(--bg2);
+  position: relative;
+}
+.result-img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  pointer-events: none;
 }
 .result-img-wrap img {
   width: 100%;
   display: block;
-  max-height: 500px;
+  max-height: 520px;
   object-fit: contain;
-  animation: reveal 0.5s ease both;
+  animation: img-reveal 0.6s cubic-bezier(.22,1,.36,1) both;
 }
-@keyframes reveal { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+@keyframes img-reveal {
+  from { opacity: 0; transform: scale(0.96); filter: blur(8px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
 .result-actions { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
 .action-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 7px 16px;
   border-radius: 3px;
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
   border: 1px solid var(--border);
-  background: transparent;
+  background: rgba(255,255,255,0.02);
   color: var(--text2);
   text-decoration: none;
+  backdrop-filter: blur(10px);
 }
-.action-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text); }
-.action-btn.hi { border-color: rgba(180,160,255,0.25); color: var(--accent); }
-.action-btn.hi:hover { background: rgba(180,160,255,0.06); }
+.action-btn:hover { border-color: rgba(255,255,255,0.14); color: var(--text); background: rgba(255,255,255,0.04); }
+.action-btn.hi { border-color: rgba(160,140,255,0.3); color: var(--accent); }
+.action-btn.hi:hover { background: rgba(160,140,255,0.08); border-color: rgba(160,140,255,0.55); }
 
 /* Error */
-.error-state { padding: 44px 28px; text-align: center; }
-.error-title { font-family: var(--serif); font-size: 1rem; font-weight: 300; color: #f09090; margin-bottom: 8px; }
-.error-msg { font-family: var(--mono); font-size: 0.7rem; color: var(--text3); line-height: 1.6; }
+.error-state { padding: 52px 28px; text-align: center; position: relative; z-index: 1; }
+.error-icon { font-size: 1.5rem; margin-bottom: 14px; opacity: 0.5; }
+.error-title { font-family: var(--title); font-size: 0.95rem; font-weight: 300; color: #f09090; margin-bottom: 8px; letter-spacing: 0.08em; }
+.error-msg { font-family: var(--mono); font-size: 0.68rem; color: var(--text3); line-height: 1.7; max-width: 380px; margin: 0 auto; }
 .retry-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 18px;
-  padding: 7px 16px;
+  margin-top: 20px;
+  padding: 8px 18px;
   border: 1px solid var(--border);
   border-radius: 3px;
   font-family: var(--mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
   color: var(--text2);
   background: transparent;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.2s;
 }
 .retry-btn:hover { border-color: rgba(255,255,255,0.12); color: var(--text); }
 
-/* ── FOOTER BAR ── */
+/* ── CARD FOOTER ── */
 .card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 28px;
   border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.2);
 }
-.card-footer-text { font-family: var(--mono); font-size: 0.58rem; color: var(--text3); letter-spacing: 0.06em; }
+.card-footer-text { font-family: var(--mono); font-size: 0.55rem; color: var(--text3); letter-spacing: 0.08em; }
+.status-dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent4);
+  margin-right: 6px;
+  box-shadow: 0 0 6px rgba(180,255,220,0.6);
+  animation: status-blink 2s ease-in-out infinite;
+}
+@keyframes status-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 .card-footer-badge {
   font-family: var(--mono);
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   color: var(--accent);
-  letter-spacing: 0.06em;
-  opacity: 0.7;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
 }
 
-/* ── FEATURES ── */
+/* ═══════════════════════════════
+   FEATURES SECTION
+═══════════════════════════════ */
 .section-wrap {
   position: relative;
   z-index: 2;
-  max-width: 780px;
+  max-width: 820px;
   margin: 0 auto;
   padding: 0 20px 80px;
 }
 .section-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.section-head-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border)); max-width: 120px; }
+.section-head-text {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
+  font-size: 0.58rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: var(--text3);
-  text-align: center;
-  margin-bottom: 36px;
 }
+
 .feat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
+  gap: 10px;
 }
 .feat-card {
-  background: rgba(12,14,22,0.9);
-  padding: 26px 22px;
-  transition: background 0.2s;
+  background: var(--glass2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 24px 20px;
+  transition: all 0.3s;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
 }
-.feat-card:hover { background: rgba(20,22,34,0.95); }
+.feat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feat-card:hover { border-color: var(--border-hi); transform: translateY(-3px); }
+.feat-card:hover::before { opacity: 0.6; }
+
 .feat-num {
   font-family: var(--mono);
-  font-size: 0.58rem;
-  color: var(--accent);
-  letter-spacing: 0.1em;
+  font-size: 0.55rem;
+  color: var(--accent2);
+  letter-spacing: 0.12em;
   margin-bottom: 14px;
-  opacity: 0.6;
+  opacity: 0.5;
 }
+.feat-icon { font-size: 1.2rem; margin-bottom: 12px; }
 .feat-title {
-  font-family: var(--serif);
-  font-size: 1rem;
-  font-weight: 300;
-  letter-spacing: 0.03em;
+  font-family: var(--title);
+  font-size: 0.9rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
   margin-bottom: 8px;
 }
-.feat-desc { font-size: 0.75rem; color: var(--text2); line-height: 1.7; font-weight: 300; }
+.feat-desc { font-size: 0.75rem; color: var(--text2); line-height: 1.8; font-weight: 300; letter-spacing: 0.02em; }
 
-/* ── API DOCS ── */
+/* ═══════════════════════════════
+   API DOCS
+═══════════════════════════════ */
 .docs-wrap {
   position: relative;
   z-index: 2;
-  max-width: 780px;
+  max-width: 820px;
   margin: 0 auto;
   padding: 0 20px 100px;
 }
 .docs-card {
-  background: rgba(12,14,22,0.9);
+  background: var(--glass2);
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(30px);
 }
 .docs-header {
-  padding: 20px 28px;
+  padding: 18px 28px;
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: 12px;
+  background: rgba(0,0,0,0.2);
 }
 .method-tag {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
-  padding: 3px 9px;
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  padding: 3px 10px;
   border-radius: 2px;
-  background: rgba(126,207,255,0.08);
+  background: rgba(126,207,255,0.07);
   color: var(--accent2);
-  border: 1px solid rgba(126,207,255,0.15);
+  border: 1px solid rgba(126,207,255,0.18);
 }
-.docs-header h3 {
-  font-family: var(--serif);
-  font-size: 0.95rem;
-  font-weight: 300;
-  letter-spacing: 0.08em;
-}
+.docs-header h3 { font-family: var(--title); font-size: 0.9rem; font-weight: 400; letter-spacing: 0.1em; }
 .docs-body { padding: 24px 28px; }
 
 .code-block {
   position: relative;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.5);
   border: 1px solid var(--border);
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 18px 20px;
   font-family: var(--mono);
-  font-size: 0.72rem;
-  line-height: 1.8;
+  font-size: 0.7rem;
+  line-height: 1.9;
   overflow-x: auto;
   white-space: pre;
-  color: #a0a8c8;
-  margin-bottom: 20px;
+  color: #9098c8;
+  margin-bottom: 22px;
 }
-.hl-g { color: #7ec8a0; }
+.hl-g { color: #80c898; }
 .hl-b { color: var(--accent2); }
 .hl-y { color: #f0d080; }
 .hl-p { color: var(--accent); }
@@ -702,12 +998,12 @@ nav {
 
 .copy-btn {
   position: absolute;
-  top: 12px; right: 12px;
+  top: 10px; right: 10px;
   font-family: var(--mono);
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   letter-spacing: 0.08em;
   padding: 3px 10px;
-  background: var(--surface2);
+  background: rgba(255,255,255,0.04);
   border: 1px solid var(--border);
   border-radius: 2px;
   color: var(--text3);
@@ -719,195 +1015,238 @@ nav {
 .param-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
 .param-table th {
   text-align: left;
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-family: var(--mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.12em;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text3);
   border-bottom: 1px solid var(--border);
 }
 .param-table td {
-  padding: 10px 12px;
+  padding: 10px 14px;
   color: var(--text2);
   border-bottom: 1px solid rgba(255,255,255,0.02);
   font-weight: 300;
   font-size: 0.78rem;
+  letter-spacing: 0.02em;
 }
 .param-table td:first-child { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); }
-.req-badge {
-  font-family: var(--mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.06em;
-  color: var(--accent3);
-  border: 1px solid rgba(255,180,212,0.2);
-  padding: 1px 7px;
-  border-radius: 2px;
-}
-.opt-badge {
-  font-family: var(--mono);
-  font-size: 0.55rem;
-  letter-spacing: 0.06em;
-  color: var(--accent2);
-  border: 1px solid rgba(126,207,255,0.15);
-  padding: 1px 7px;
-  border-radius: 2px;
-}
+.req-badge { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.06em; color: var(--accent3); border: 1px solid rgba(255,180,212,0.2); padding: 2px 8px; border-radius: 2px; }
+.opt-badge { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.06em; color: var(--accent2); border: 1px solid rgba(126,207,255,0.15); padding: 2px 8px; border-radius: 2px; }
 
-/* ── FOOTER ── */
+/* ═══════════════════════════════
+   FOOTER
+═══════════════════════════════ */
 footer {
   position: relative;
   z-index: 2;
   border-top: 1px solid var(--border);
-  padding: 24px 48px;
+  padding: 22px 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(20px);
 }
-.foot-logo { font-family: var(--serif); font-size: 1rem; font-weight: 300; letter-spacing: 0.1em; color: var(--text2); }
-.foot-links { font-family: var(--mono); font-size: 0.6rem; color: var(--text3); letter-spacing: 0.08em; }
+.foot-logo { font-family: var(--title); font-size: 0.95rem; font-weight: 400; letter-spacing: 0.18em; color: var(--text2); }
+.foot-links { font-family: var(--mono); font-size: 0.58rem; color: var(--text3); letter-spacing: 0.1em; }
 
-/* ── MOBILE ── */
-@media (max-width: 600px) {
-  nav { padding: 16px 20px; }
-  .hero { padding: 70px 16px 36px; }
+/* ═══════════════════════════════
+   RESPONSIVE
+═══════════════════════════════ */
+@media (max-width: 640px) {
+  nav { padding: 14px 20px; }
+  .nav-links .nav-link:not(.hi) { display: none; }
+  .hero { padding: 70px 16px 32px; }
   .gen-wrap, .section-wrap, .docs-wrap { padding-left: 16px; padding-right: 16px; }
-  .input-section { padding: 20px 16px 18px; }
+  .input-section { padding: 18px 16px 16px; }
   .prompt-row { flex-direction: column; }
   .gen-btn { width: 100%; }
-  .apikey-section, .examples-section, .card-footer, .docs-body, .docs-header { padding-left: 16px; padding-right: 16px; }
+  .apikey-section, .examples-section, .card-footer { padding-left: 16px; padding-right: 16px; }
   .feat-grid { grid-template-columns: 1fr; }
-  footer { flex-direction: column; gap: 10px; padding: 20px; text-align: center; }
-  .moon { width: 140px; height: 140px; right: 4vw; }
+  footer { flex-direction: column; gap: 10px; padding: 18px; text-align: center; }
+  .moon { width: 120px; height: 120px; }
+  .moon-wrap { top: 4vh; right: 4vw; }
 }
 </style>
 </head>
 <body>
 
-<!-- ── BACKGROUND ANIME SCENE ── -->
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ═══════════════════ BACKGROUND ═══════════════════ -->
 <div class="bg-scene">
-  <div class="moon"></div>
-  <div class="stars" id="starsContainer"></div>
-  <div class="mountains">
-    <div class="mt mt1"></div>
-    <div class="mt mt2"></div>
-    <div class="mt mt3"></div>
-    <div class="mt mt4"></div>
+  <div class="aurora"></div>
+
+  <div class="moon-wrap">
+    <div class="moon">
+      <div class="moon-halo"></div>
+      <div class="moon-halo"></div>
+    </div>
   </div>
-  <div class="mist"></div>
+
+  <div class="stars" id="starsContainer"></div>
+
+  <div class="mountains">
+    <div class="mt-far"></div>
+    <div class="mt-mid1"></div>
+    <div class="mt-mid2"></div>
+    <div class="mt-mid3"></div>
+  </div>
+
+  <div class="mist-layer"></div>
+  <div class="mist-layer"></div>
+  <div class="mist-layer"></div>
+
   <div id="petalsContainer"></div>
+  <div id="firefliesContainer"></div>
+
   <div class="bg-overlay"></div>
 </div>
 
-<!-- ── NAV ── -->
+<!-- ═══════════════════ NAV ═══════════════════ -->
 <nav>
-  <div class="nav-logo">Aeri<span>vue</span></div>
+  <div class="nav-logo">
+    <div class="logo-gem"></div>
+    Aeri<span>vue</span>
+  </div>
   <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
     <a href="#docs" class="nav-link">API Docs</a>
-    <a href="https://aerivue.onrender.com/admin" target="_blank" class="nav-link hi">Admin Panel</a>
+    <a href="https://aerivue.onrender.com/admin" target="_blank" class="nav-link hi">↗ Admin Panel</a>
   </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- ═══════════════════ HERO ═══════════════════ -->
 <section class="hero">
-  <div class="hero-tag">AI — Image Generation</div>
+  <div class="hero-kana">エアリヴュー — 画像生成</div>
+  <div class="hero-tag">AI Image Generation</div>
   <h1>Turn Words Into<br><em>Stunning Visuals</em></h1>
-  <p class="hero-sub">Describe anything. Get a professional image in seconds.</p>
+  <p class="hero-sub">Describe anything. Receive professional art in seconds.</p>
 </section>
 
-<!-- ── GENERATOR ── -->
+<!-- ═══════════════════ GENERATOR ═══════════════════ -->
 <div class="gen-wrap">
   <div class="gen-card">
+    <div class="card-shimmer"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
 
+    <!-- PROMPT -->
     <div class="input-section">
-      <div class="field-label">Prompt</div>
+      <div class="field-label"><span class="dot"></span> Prompt</div>
       <div class="prompt-row">
         <textarea
           class="prompt-input"
           id="promptInput"
-          placeholder="a futuristic city at dusk with glowing lanterns..."
+          placeholder="a futuristic city at dusk with glowing lanterns, cinematic..."
           rows="2"
           onkeydown="handleEnter(event)"
         ></textarea>
         <button class="gen-btn" id="genBtn" onclick="startGenerate()">
-          <span id="btnText">GENERATE</span>
+          <span class="btn-inner" id="btnInner">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M6 1L11 6L6 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+              <path d="M1 6H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            GENERATE
+          </span>
         </button>
       </div>
     </div>
 
+    <!-- API KEY — prefilled, editable -->
     <div class="apikey-section">
+      <span class="key-icon">⌘</span>
       <span class="key-label">API KEY</span>
-      <input type="text" class="apikey-input" id="apiKeyInput" placeholder="img_RZGXRBUJ9rqDZquofGjSgtCRzmPrYh6u">
-      <a href="https://aerivue.onrender.com/admin" target="_blank" class="get-key-link">Get key &rarr;</a>
+      <input
+        type="text"
+        class="apikey-input"
+        id="apiKeyInput"
+        value="img_RZGXRBUJ9rqDZquofGjSgtCRzmPrYh6u"
+        placeholder="img_..."
+      >
+      <a href="https://aerivue.onrender.com/admin" target="_blank" class="get-key-link">Get key →</a>
     </div>
 
-   <div class="examples-section">
-  <span class="ex-label">Try</span>
+    <!-- EXAMPLES -->
+    <div class="examples-section">
+      <span class="ex-label">Try</span>
+      <button class="ex-chip" onclick="setPrompt(`masterpiece, 8k, best quality, a stylish artistic blind box toy of a cool and cute girl, full body shot, made of high-transparency crystal clear resin, hyper-detailed, C4D style, 3D render, isolated on a pure white background. Streetwear fashion, trendy collectible designer toy --v 7`)">Cute Toy Girl</button>
+      <button class="ex-chip" onclick="setPrompt(`Dynamic ultra-wide POV charging through a sprawling meadow, powerful black warhorse rearing on hind legs, obsidian medieval armor rider holding a lance skyward, dark tattered cloak, storm clouds over snow mountains, cinematic, UHD 8K, epic dark fantasy --ar 3:5 --v 7`)">Dark Fantasy</button>
+      <button class="ex-chip" onclick="setPrompt(`cat astronaut floating in space, soft watercolor illustration, dreamy pastel nebula`)">Cat Astronaut</button>
+      <button class="ex-chip" onclick="setPrompt(`abstract golden dragon luxury brand identity, minimal, elegant, ink brush`)">Dragon Logo</button>
+      <button class="ex-chip" onclick="setPrompt(`ancient japanese shrine at night, sakura blossoms, moonlight, torii gate, ultra detailed anime style, Studio Ghibli inspired, 4K`)">Shrine Night</button>
+    </div>
 
-  <button class="ex-chip"
-  onclick="setPrompt(`masterpiece, 8k, best quality, a stylish artistic blind box toy of a cool and cute girl, full body shot, made of high-transparency crystal clear resin, hyper-detailed, C4D style, 3D render, isolated on a pure white background. The girl has a bright mischievous expression, her blonde hair is covered by a baggy black knit hat, and she is dressed in a black tank top with suspenders and loose white jeans with a blue-and-black graffiti print. Streetwear fashion, trendy collectible designer toy, unity and consistency in style --v 7`)">
-  Cute Girl
-  </button>
-
-  <button class="ex-chip"
-  onclick="setPrompt(`Dynamic ultra-wide angle POV shot charging at exhilarating speed through a sprawling meadow of tall grass creating intense motion blur in the foreground. Ahead a powerful black warhorse rears on its hind legs muscles tensed and mane flowing violently in the wind. A rider in obsidian medieval armor holds a brutalistic lance skyward with a dark tattered cloak whipping in storm clouds over snow mountains. Cinematic lighting hyper realistic detail UHD 8K epic dark fantasy atmosphere --ar 3:5 --v 7`)">
-  Cyberpunk
-  </button>
-
-  <button class="ex-chip"
-  onclick="setPrompt(`cat astronaut floating in space soft illustration`)">
-  Cat astronaut
-  </button>
-
-  <button class="ex-chip"
-  onclick="setPrompt(`abstract golden dragon luxury brand identity`)">
-  Dragon logo
-  </button>
-</div>
-
+    <!-- OUTPUT -->
     <div class="output-area" id="outputArea">
       <div class="empty-state" id="emptyState">
-        <div class="empty-cross"></div>
-        <div class="empty-text">Your image will appear here<br>Enter a prompt and your API key above</div>
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="3" stroke="currentColor" stroke-width="1"/>
+            <circle cx="9" cy="10" r="2.5" stroke="currentColor" stroke-width="1"/>
+            <path d="M2 18L8 13L14 17L20 11L26 16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="empty-text">
+          <strong>Your image will appear here</strong>
+          Enter a prompt and press Generate
+        </div>
       </div>
     </div>
 
+    <!-- FOOTER -->
     <div class="card-footer">
-      <span class="card-footer-text">Powered by Aerivue Image API &nbsp;&middot;&nbsp; aerivue.onrender.com</span>
+      <span class="card-footer-text"><span class="status-dot"></span>Powered by Aerivue Image API · aerivue.onrender.com</span>
       <span class="card-footer-badge">@aerivue</span>
     </div>
   </div>
 </div>
 
-<!-- ── FEATURES ── -->
-<div class="section-wrap">
-  <div class="section-head">Capabilities</div>
+<!-- ═══════════════════ FEATURES ═══════════════════ -->
+<div class="section-wrap" id="features">
+  <div class="section-head">
+    <div class="section-head-line"></div>
+    <span class="section-head-text">Capabilities</span>
+    <div class="section-head-line" style="background:linear-gradient(270deg,transparent,var(--border))"></div>
+  </div>
   <div class="feat-grid">
     <div class="feat-card">
       <div class="feat-num">01</div>
+      <div class="feat-icon">✦</div>
       <div class="feat-title">Any Style</div>
-      <div class="feat-desc">Logos, illustrations, photorealistic art, abstract compositions — describe it and get it.</div>
+      <div class="feat-desc">Logos, illustrations, photorealistic art, abstract compositions — describe it precisely and receive it.</div>
     </div>
     <div class="feat-card">
       <div class="feat-num">02</div>
+      <div class="feat-icon">◈</div>
       <div class="feat-title">Async Pipeline</div>
-      <div class="feat-desc">Two-step generation with real-time polling. Your app stays responsive while images render.</div>
+      <div class="feat-desc">Two-step async generation with real-time polling. Your application stays responsive while images render.</div>
     </div>
     <div class="feat-card">
       <div class="feat-num">03</div>
+      <div class="feat-icon">⬡</div>
       <div class="feat-title">Secure Auth</div>
-      <div class="feat-desc">Expiry-based API keys with usage limits, managed entirely from the admin panel.</div>
+      <div class="feat-desc">Expiry-based API keys with usage tracking and limits, managed entirely from the admin panel.</div>
     </div>
   </div>
 </div>
 
-<!-- ── API DOCS ── -->
+<!-- ═══════════════════ API DOCS ═══════════════════ -->
 <div class="docs-wrap" id="docs">
-  <div class="section-head">API Reference</div>
+  <div class="section-head">
+    <div class="section-head-line"></div>
+    <span class="section-head-text">API Reference</span>
+    <div class="section-head-line" style="background:linear-gradient(270deg,transparent,var(--border))"></div>
+  </div>
   <div class="docs-card">
     <div class="docs-header">
       <span class="method-tag">GET</span>
-      <h3>Generate Image</h3>
+      <h3>Generate Image — Two Step</h3>
     </div>
     <div class="docs-body">
       <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="hl-d"># Step 1 — Start generation</span>
@@ -915,15 +1254,15 @@ footer {
   ?<span class="hl-y">prompt</span>=a futuristic lion logo
   &<span class="hl-y">apikey</span>=img_your_key_here
 
-<span class="hl-d"># Response</span>
+<span class="hl-d"># Response → receive task_id</span>
 { <span class="hl-p">"task_id"</span>: <span class="hl-g">"abc123..."</span>, <span class="hl-p">"credit"</span>: <span class="hl-g">"@aerivue"</span> }
 
-<span class="hl-d"># Step 2 — Poll for result</span>
+<span class="hl-d"># Step 2 — Poll for result (every 3s)</span>
 <span class="hl-g">GET</span> <span class="hl-b">https://aerivue.onrender.com/generate/check</span>
   ?<span class="hl-y">task_id</span>=abc123...
   &<span class="hl-y">apikey</span>=img_your_key_here
 
-<span class="hl-d"># Response (when ready)</span>
+<span class="hl-d"># Response when ready</span>
 { <span class="hl-p">"image_url"</span>: <span class="hl-g">"https://..."</span>, <span class="hl-p">"credit"</span>: <span class="hl-g">"@aerivue"</span> }</div>
 
       <table class="param-table">
@@ -939,12 +1278,12 @@ footer {
           <tr>
             <td>apikey</td>
             <td><span class="req-badge">required</span></td>
-            <td>Your <code style="font-family:var(--mono);font-size:0.7rem;color:var(--accent)">img_</code> prefixed API key from the admin panel</td>
+            <td>Your <code style="font-family:var(--mono);font-size:0.68rem;color:var(--accent)">img_</code> prefixed API key from the admin panel</td>
           </tr>
           <tr>
             <td>task_id</td>
             <td><span class="opt-badge">check only</span></td>
-            <td>Task ID returned from the <code style="font-family:var(--mono);font-size:0.7rem;color:var(--accent)">/generate</code> call</td>
+            <td>Task ID returned from the <code style="font-family:var(--mono);font-size:0.68rem;color:var(--accent)">/generate</code> endpoint</td>
           </tr>
         </tbody>
       </table>
@@ -952,57 +1291,114 @@ footer {
   </div>
 </div>
 
-<!-- ── FOOTER ── -->
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
 <footer>
   <div class="foot-logo">Aerivue</div>
-  <div class="foot-links">aerivue.onrender.com &nbsp;&middot;&nbsp; @aerivue</div>
+  <div class="foot-links">aerivue.onrender.com &nbsp;·&nbsp; @aerivue</div>
 </footer>
 
 <script>
   const BASE = 'https://aerivue.onrender.com';
   let polling = null;
 
-  // ── Generate stars
+  // ── Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 4 + 'px';
+    cursor.style.top = my - 4 + 'px';
+  });
+  function animRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx - 16 + 'px';
+    ring.style.top = ry - 16 + 'px';
+    requestAnimationFrame(animRing);
+  }
+  animRing();
+  document.querySelectorAll('button, a, input, textarea').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      ring.style.width = '48px'; ring.style.height = '48px';
+      ring.style.borderColor = 'rgba(180,160,255,0.6)';
+    });
+    el.addEventListener('mouseleave', () => {
+      ring.style.width = '32px'; ring.style.height = '32px';
+      ring.style.borderColor = 'rgba(180,160,255,0.4)';
+    });
+  });
+
+  // ── Stars
   const sc = document.getElementById('starsContainer');
-  for (let i = 0; i < 90; i++) {
+  for (let i = 0; i < 120; i++) {
     const s = document.createElement('div');
-    s.className = 'star';
-    const sz = Math.random() * 1.5 + 0.5;
+    s.className = 'star' + (Math.random() > 0.85 ? ' big' : '');
+    const sz = Math.random() * 1.8 + 0.4;
     s.style.cssText = `
       width:${sz}px;height:${sz}px;
-      top:${Math.random()*65}%;
-      left:${Math.random()*100}%;
-      --op:${Math.random()*0.5+0.15};
-      --d:${Math.random()*4+2}s;
-      --del:-${Math.random()*4}s;
+      top:${Math.random() * 70}%;
+      left:${Math.random() * 100}%;
+      --op:${Math.random() * 0.55 + 0.15};
+      --d:${Math.random() * 5 + 2}s;
+      --del:-${Math.random() * 5}s;
     `;
     sc.appendChild(s);
   }
 
+  // ── Shooting stars
+  for (let i = 0; i < 4; i++) {
+    const sh = document.createElement('div');
+    sh.className = 'shoot';
+    sh.style.cssText = `
+      top:${Math.random() * 40}%;
+      left:${Math.random() * 60}%;
+      animation-duration:${Math.random() * 8 + 10}s;
+      animation-delay:-${Math.random() * 12}s;
+    `;
+    sc.appendChild(sh);
+  }
+
   // ── Sakura petals
   const pc = document.getElementById('petalsContainer');
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 14; i++) {
     const p = document.createElement('div');
     p.className = 'petal';
+    const sz = Math.random() * 6 + 4;
     p.style.cssText = `
-      left:${Math.random()*100}%;
-      animation-duration:${Math.random()*12+10}s;
-      animation-delay:-${Math.random()*15}s;
-      transform:scale(${Math.random()*0.8+0.6});
-      opacity:${Math.random()*0.4+0.2};
+      width:${sz}px;height:${sz}px;
+      left:${Math.random() * 100}%;
+      animation-duration:${Math.random() * 14 + 12}s;
+      animation-delay:-${Math.random() * 18}s;
+      opacity:${Math.random() * 0.5 + 0.2};
     `;
     pc.appendChild(p);
   }
 
+  // ── Fireflies
+  const fc = document.getElementById('firefliesContainer');
+  for (let i = 0; i < 8; i++) {
+    const f = document.createElement('div');
+    f.className = 'firefly';
+    f.style.cssText = `
+      left:${Math.random() * 80 + 10}%;
+      top:${Math.random() * 40 + 40}%;
+      animation-duration:${Math.random() * 6 + 6}s, ${Math.random() * 2 + 1.5}s;
+      animation-delay:-${Math.random() * 8}s, -${Math.random() * 2}s;
+    `;
+    fc.appendChild(f);
+  }
+
+  // ── Prompt helpers
   function setPrompt(t) {
     document.getElementById('promptInput').value = t;
     document.getElementById('promptInput').focus();
   }
-
   function handleEnter(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); startGenerate(); }
   }
 
+  // ── Output helpers
   function setOutput(html) {
     document.getElementById('outputArea').innerHTML = html;
   }
@@ -1010,22 +1406,33 @@ footer {
   function showEmpty() {
     setOutput(`
       <div class="empty-state">
-        <div class="empty-cross"></div>
-        <div class="empty-text">Your image will appear here<br>Enter a prompt and your API key above</div>
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="2" y="2" width="24" height="24" rx="3" stroke="currentColor" stroke-width="1"/>
+            <circle cx="9" cy="10" r="2.5" stroke="currentColor" stroke-width="1"/>
+            <path d="M2 18L8 13L14 17L20 11L26 16" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="empty-text"><strong>Your image will appear here</strong>Enter a prompt and press Generate</div>
       </div>
     `);
   }
 
-  function showLoading(msg = 'Generating your image', sub = 'This takes a few seconds') {
+  function showLoading(title = 'Generating your image', sub = 'This takes a few seconds') {
     setOutput(`
       <div class="loading-state">
         <div class="spinner-wrap">
-          <div class="spinner-ring outer"></div>
-          <div class="spinner-ring inner"></div>
+          <div class="ring ring-1"></div>
+          <div class="ring ring-2"></div>
+          <div class="ring ring-3"></div>
+          <div class="ring-dot"></div>
         </div>
-        <div class="loading-title">${msg}</div>
+        <div class="loading-title">${title}</div>
         <div class="loading-sub">${sub}</div>
-        <div class="progress"><div class="progress-fill"></div></div>
+        <div class="progress-wrap">
+          <div class="progress"><div class="progress-fill"></div></div>
+          <div class="progress-label">Aerivue Pipeline · polling</div>
+        </div>
       </div>
     `);
   }
@@ -1040,7 +1447,7 @@ footer {
         <div class="result-actions">
           <button class="action-btn" onclick="shareImage('${imageUrl}')">Share URL</button>
           <a class="action-btn" href="${imageUrl}" download target="_blank">Download</a>
-          <a class="action-btn hi" href="${imageUrl}" target="_blank">Open Full &rarr;</a>
+          <a class="action-btn hi" href="${imageUrl}" target="_blank">Open Full →</a>
         </div>
       </div>
     `);
@@ -1049,59 +1456,77 @@ footer {
   function showError(msg, hint = '') {
     setOutput(`
       <div class="error-state">
+        <div class="error-icon">⊘</div>
         <div class="error-title">Generation Failed</div>
         <div class="error-msg">${msg}${hint ? '<br><br>' + hint : ''}</div>
-        <button class="retry-btn" onclick="showEmpty()">&larr; Try again</button>
+        <button class="retry-btn" onclick="showEmpty()">← Try again</button>
       </div>
     `);
   }
 
   function setBtnLoading(on) {
     const btn = document.getElementById('genBtn');
-    const txt = document.getElementById('btnText');
+    const inner = document.getElementById('btnInner');
     btn.disabled = on;
-    txt.innerHTML = on
-      ? `<span style="display:inline-block;width:10px;height:10px;border:1px solid rgba(180,160,255,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:6px"></span>WORKING`
-      : 'GENERATE';
+    inner.innerHTML = on
+      ? `<span style="display:inline-block;width:10px;height:10px;border:1px solid rgba(180,160,255,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite"></span> WORKING`
+      : `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1L11 6L6 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M1 6H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> GENERATE`;
   }
 
+  // ── MAIN GENERATE LOGIC
   async function startGenerate() {
     if (polling) { clearInterval(polling); polling = null; }
 
     const prompt = document.getElementById('promptInput').value.trim();
     const apiKey = document.getElementById('apiKeyInput').value.trim();
 
-    if (!prompt) { showError('Please enter a prompt first.', 'Describe the image you want to create.'); return; }
-    if (!apiKey) { showError('API key required.', 'Paste your img_... key above, or get one from the admin panel.'); return; }
+    if (!prompt) {
+      showError('Please enter a prompt first.', 'Describe the image you want to create.');
+      return;
+    }
+    if (!apiKey) {
+      showError('API key required.', 'The key field should already be filled — check the API KEY field above.');
+      return;
+    }
 
     setBtnLoading(true);
-    showLoading('Starting generation', 'Sending your prompt to Aerivue');
+    showLoading('Starting generation', 'Sending your prompt to Aerivue…');
 
     try {
-      const res = await fetch(`${BASE}/generate?prompt=${encodeURIComponent(prompt)}&apikey=${encodeURIComponent(apiKey)}`);
+      const res = await fetch(
+        `${BASE}/generate?prompt=${encodeURIComponent(prompt)}&apikey=${encodeURIComponent(apiKey)}`
+      );
       const data = await res.json();
 
       if (!res.ok) {
         setBtnLoading(false);
-        showError(data.error || 'API error: ' + res.status, 'Check your API key and try again.');
+        showError(data.error || 'API error ' + res.status, 'Check your API key and try again.');
+        return;
+      }
+
+      // Direct image_url (no task polling needed)
+      if (data.image_url) {
+        setBtnLoading(false);
+        showResult(data.image_url);
         return;
       }
 
       const taskId = data.task_id;
       if (!taskId) {
-        if (data.image_url) { setBtnLoading(false); showResult(data.image_url); return; }
         setBtnLoading(false);
-        showError('Unexpected response from API.', JSON.stringify(data));
+        showError('Unexpected API response.', JSON.stringify(data));
         return;
       }
 
-      showLoading('Generating your image', `Task ${taskId.substring(0, 12)}... &nbsp;&middot;&nbsp; polling every 3s`);
+      showLoading('Generating your image', `Task ${taskId.substring(0,12)}… · polling every 3s`);
 
       let attempts = 0;
       polling = setInterval(async () => {
         attempts++;
         try {
-          const cr = await fetch(`${BASE}/generate/check?task_id=${encodeURIComponent(taskId)}&apikey=${encodeURIComponent(apiKey)}`);
+          const cr = await fetch(
+            `${BASE}/generate/check?task_id=${encodeURIComponent(taskId)}&apikey=${encodeURIComponent(apiKey)}`
+          );
           const cd = await cr.json();
           if (cd.image_url) {
             clearInterval(polling); polling = null;
@@ -1138,7 +1563,7 @@ footer {
     const block = btn.parentElement;
     const text = block.innerText.replace(/^copy\n|\ncopy$/g, '').trim();
     navigator.clipboard.writeText(text);
-    btn.textContent = 'copied';
+    btn.textContent = 'copied!';
     setTimeout(() => btn.textContent = 'copy', 2000);
   }
 </script>
